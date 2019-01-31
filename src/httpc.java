@@ -2,7 +2,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class httpc {
 	
@@ -13,45 +16,63 @@ public class httpc {
 		Socket clientSocket;
 		PrintWriter clientOut;
 		BufferedReader clientIn;
-		String outputString = "";
-		String inputLine;
+		Map <String, String> hPairs = new HashMap <String, String>();
 		
-		// Check argument (TODO)
+		// Check argument
 		for(int i = 0; i < input.length - 1; i++){	
 			switch (input[i]){
-				case "-v":																		// verbose
+				case "-v":
 					verbose = true;
-					outputString += "-v ";
 					break;
-				case "-h":																		// header
+				case "-h":
+					String pairs = input[i+1];
+					int separation = pairs.indexOf(':');
+					hPairs.put(pairs.substring(0, separation), pairs.substring(separation+1));
 					break;
 			}
 		}
 		
-		// Process (TODO)
+		// Process
 		try {
-			clientSocket = new Socket(input[input.length - 1], 80);
-			clientOut = new PrintWriter(clientSocket.getOutputStream());
-			clientOut.println("GET " + outputString + " " + "HTTP/1.0\r\n" + "Host:" + input[input.length - 1] + "\r\n\r\n");
+			// Register socket and info
+			URI url = new URI(input[input.length-1]);
+			String host = url.getHost();
+			
+			int port;
+			if ((port = url.getPort()) == -1) {
+				port = 80;
+			}
+			
+			clientSocket = new Socket(host, port);
+			clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			clientOut = new PrintWriter(clientSocket.getOutputStream(), true);			
+			
+			clientOut.println("GET" + " "+ input[input.length-1] + " HTTP/1.1");
+			clientOut.println("Host: " + host);
+			clientOut.println("User-Agent: Concordia-HTTP/1.0");
+			clientOut.println("Connection: close");
+			
+			// Add other commands
+			if(!hPairs.isEmpty()){															
+				for (Map.Entry<String, String> entry: hPairs.entrySet()){
+					clientOut.println(entry.getKey()+ ": " + entry.getValue());
+				}
+			}
+			
+			clientOut.println("");
 			clientOut.flush();
 			
-			clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
-			
-			if (verbose) {
-				while ((inputLine = clientIn.readLine()) != null) {
-					if (inputLine.equals("{")) {
-						System.exit(0);
-					}
-					System.out.println(inputLine);
-				}
+			boolean print = false;
+			// Print contents
+			for(String line= clientIn.readLine(); line != null; line = clientIn.readLine()){
+				if (line.isEmpty() || verbose) print = true;
+				if (print) System.out.println(line);
 			}
-			else {
-				while ((inputLine = clientIn.readLine()) != null) {
-					System.out.println(inputLine);
-				}
-			}
-			
+				
+			// Close streams
 			clientIn.close();
+			clientOut.close();
+			clientSocket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -65,14 +86,14 @@ public class httpc {
 		// Check arguments (TODO)
 		for(int i = 0;i < input.length - 1; i++){	
 			switch (input[i]){
-				case "-v":																		// verbose
+				case "-v":
 					verbose = true;
 					break;
-				case "-h":																		// header
+				case "-h":
 					break;
-				case "-d":																		// inlineData
+				case "-d":
 					break;
-				case "-f":																		// post file
+				case "-f":
 					break;
 			}
 		}
@@ -101,31 +122,32 @@ public class httpc {
 			if (args.length >= 2) {
 				switch(args[1]) {
 				case "get":
-					System.out.println("Use:");
-					System.out.println("get [-v] [-h key:value] URL");
-					System.out.println("-v, prints the details of the response such as protocol, status and headers");
-					System.out.println("-h key:value, associates headers to HTTP request with the format \'key:value\'");
+					System.out.println("Usage: httpc get [-v] [-h key:value] URL");
+					System.out.println("Get executes a HTTP GET request for a given URL.");
+					System.out.println("-v \t Prints the detail of the response such as protocol, status, and headers.");
+					System.out.println("-h \t Associates headers to HTTP Request with the format \'key:value\'.");
 				break;
 				case "post":
-					System.out.println("Use:");
+					System.out.println("Usage:");
 					System.out.println("post [-v] [-h key:value] [-d inline-data] [-f file] URL");
-					System.out.println("-v, prints the details of the response such as protocol, status and headers");
-					System.out.println("-h key:value, associates headers to HTTP request with the format \'key:value\'");
-					System.out.println("-d string, associates an inline data to the body HTTP POST request");
-					System.out.println("-f file, associates the content of a file to the body HTTP");
+					System.out.println("-v \t Prints the detail of the response such as protocol, status, and headers.");
+					System.out.println("-h \t Associates headers to HTTP Request with the format \'key:value\'.");
+					System.out.println("-d \t string Associates an inline data to the body HTTP POST request.");
+					System.out.println("-f \t Associates the content of a file to the body HTTP POST request.");
 				break;
 				default:
 					System.out.print("Invalid argument");
 				}
 			}
 			else {
-				System.out.println("httpc is a simple http client library that aims to be curl-like");
-				System.out.println("Use:");
-				System.out.println("java httpc.java command [arguments]");
-				System.out.println("Commands:");
-				System.out.println("get -> HTTP GET request and prints its response");
-				System.out.println("post -> HTTP POST request and prints its response");
-				System.out.println("help -> prints this screen, use help [command] for more information on that command");
+				System.out.println("httpc is a curl-like application but supports HTTP protocol only.");
+				System.out.println("Usage:");
+				System.out.println("httpc command [arguments]");
+				System.out.println("The commands are:");
+				System.out.println("get \t executes a HTTP GET request and prints the response.");
+				System.out.println("post \t executes a HTTP POST request and prints the response.");
+				System.out.println("");
+				System.out.println("Use \"httpc help [command]\" for more information about a command.");
 			}
 			System.exit(0);
 		}
