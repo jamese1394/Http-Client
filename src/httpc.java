@@ -55,6 +55,7 @@ public class httpc {
             clientOut.println("GET" + " "+ input[input.length-1] + " HTTP/1.1");
             clientOut.println("Host: " + host);
             clientOut.println("User-Agent: Concordia-HTTP/1.0");
+            clientOut.println("Connection: close");
 
             // Add other commands
             if(!hPairs.isEmpty()){
