@@ -140,7 +140,6 @@ public class httpc {
                     inline = inline.substring(0, tempIndex + 1) + "\"" + inline.substring(tempIndex + 1);
                     tempIndex = inline.indexOf(":");
                     inline = inline.substring(0, tempIndex) + "\"" + inline.substring(tempIndex);
-                    		
                     contentLength = "";
                     contentLength += inline.length();
                     hPairs.put("Content-Length", contentLength);
@@ -200,8 +199,10 @@ public class httpc {
             if(hasFile){
                 Scanner sc = new Scanner(new FileInputStream(fileName));
                 String fileContent = "";
+                String line = "";
                 while(sc.hasNextLine()){
-                    fileContent += sc.nextLine() + "\n";
+                    line += sc.nextLine() + "\n";
+                    fileContent = line.replace("'", "");
                 }
                 clientOut.println(fileContent);
                 sc.close();
