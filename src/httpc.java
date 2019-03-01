@@ -1,6 +1,5 @@
 import java.io.*;
-import java.net.Socket;
-import java.net.URI;
+import java.net.*;
 import java.util.Scanner;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,7 +14,8 @@ public class httpc {
         boolean toFile = false;
         String outputFile = "";
         Socket clientSocket;
-        PrintWriter clientOut;
+        SocketAddress Address;
+        BufferedWriter clientOut;
         BufferedReader clientIn;
         Map <String, String> hPairs = new HashMap <String, String>();
 
@@ -40,50 +40,86 @@ public class httpc {
         // Process
         try {
             // Register socket and info
-            URI url = new URI(input[input.length-1]);
-            String host = url.getHost();
-
+            String url = input[input.length - 1];
+            URL u = new URL(url);
+            String host = u.getHost();
             int port;
-            if ((port = url.getPort()) == -1) {
-                port = 80;
+            
+            if(host.equals("localhost")){
+                port = 8080;
+            }else {
+                port = u.getDefaultPort();
             }
-
-            clientSocket = new Socket(host, port);
+            
+            // Open socket
+            clientSocket = new Socket();
+            Address = new InetSocketAddress(host, port);
+            clientSocket.connect(Address);
+            
+            clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
-
-            clientOut.println("GET" + " "+ input[input.length-1] + " HTTP/1.1");
-            clientOut.println("Host: " + host);
-            clientOut.println("User-Agent: Concordia-HTTP/1.0");
-            clientOut.println("Connection: close");
-
-            // Add other commands
-            if(!hPairs.isEmpty()){
-                for (Map.Entry<String, String> entry: hPairs.entrySet()){
-                    clientOut.println(entry.getKey()+ ": " + entry.getValue());
+            StringBuilder sb = new StringBuilder();
+            sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+            sb.append("Host: " + host + "\r\n");
+            sb.append("Connection: close\r\n");
+            sb.append("User-Agent: COMP445\r\n");
+            for (String keys:hPairs.keySet()) {
+                sb.append(keys).append(": ").append(hPairs.get(keys)).append("\r\n");
+            }
+            sb.append("\r\n");
+            clientOut.write(sb.toString());
+            clientOut.flush();
+         
+            sb = new StringBuilder();
+            boolean print = false;
+            // Print contents
+            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
+                if (line.isEmpty() || verbose) print = true;
+                if (print) sb.append(line + "\r\n");
+            }
+            
+            //Check if needs redirection
+            if(sb.toString().contains("HTTP/1.0") || sb.toString().contains("HTTP/1.1") || sb.toString().contains("HTTP/2.0")){
+                if(Redirection(sb.toString()))
+                {
+                    // Open socket
+                	clientSocket.close();
+                    clientSocket = new Socket();
+                    Address = new InetSocketAddress(host, port);
+                    clientSocket.connect(Address);
+                    
+                    clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                    clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    sb = new StringBuilder();
+                    sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+                    sb.append("Host: " + host + "\r\n");
+                    sb.append("Connection: close\r\n");
+                    sb.append("User-Agent: COMP445\r\n");
+                    for (String keys:hPairs.keySet()) {
+                        sb.append(keys).append(": ").append(hPairs.get(keys)).append("\r\n");
+                    }
+                    sb.append("\r\n");
+                    clientOut.write(sb.toString());
+                    clientOut.flush();
+                    
+                    sb = new StringBuilder();
+                    print = false;
+                    // Print contents
+                    for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
+                        if (line.isEmpty() || verbose) print = true;
+                        if (print) sb.append(line + "\r\n");
+                    }
                 }
             }
-
-            clientOut.println("");
-            clientOut.flush();
-
+            
             if (!toFile) {
-	            boolean print = false;
 	            // Print contents
-	            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
-	                if (line.isEmpty() || verbose) print = true;
-	                if (print) System.out.println(line);
-	            }
+            	System.out.println(sb);
             }
             else {
             	PrintWriter printToFile = new PrintWriter(outputFile,"UTF-8");
-            	
-	            boolean print = false;
 	            // Print contents
-	            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
-	                if (line.isEmpty() || verbose) print = true;
-	                if (print) printToFile.println(line);
-	            }
+            	printToFile.println(sb);
 	            printToFile.close();
             }
             
@@ -108,7 +144,8 @@ public class httpc {
         boolean toFile = false;
         String outputFile = "";
         Socket clientSocket;
-        PrintWriter clientOut;
+        SocketAddress Address;
+        BufferedWriter clientOut;
         BufferedReader clientIn;
         Map <String, String> hPairs = new HashMap <String, String>();
 
@@ -165,34 +202,37 @@ public class httpc {
         // Process
         try {
             // Register socket and info
-            URI url = new URI(input[input.length-1]);
-            String host = url.getHost();
-
+            String url = input[input.length - 1];
+            URL u = new URL(url);
+            String host = u.getHost();
             int port;
-            if ((port = url.getPort()) == -1) {
-                port = 80;
+            
+            if(host.equals("localhost")){
+                port = 8080;
+            }else {
+                port = u.getDefaultPort();
             }
 
-            clientSocket = new Socket(host, port);
+            // Open socket
+            clientSocket = new Socket();
+            Address = new InetSocketAddress(host, port);
+            clientSocket.connect(Address);
+            
+            clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
-
-            clientOut.println("POST" + " "+ input[input.length-1] + " HTTP/1.1");
-            clientOut.println("Host: " + host);
-            clientOut.println("User-Agent: Concordia-HTTP/1.0");
-            clientOut.println("Connection: close");
-
-            // Add other commands
-            if(!hPairs.isEmpty()){
-                for (Map.Entry<String, String> entry: hPairs.entrySet()){
-                    clientOut.println(entry.getKey()+ ": " + entry.getValue());
-                }
+            StringBuilder sb = new StringBuilder();
+            sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+            sb.append("Host: " + host + "\r\n");
+            sb.append("Connection: close\r\n");
+            sb.append("User-Agent: COMP445\r\n");
+            for (String keys:hPairs.keySet()) {
+                sb.append(keys).append(": ").append(hPairs.get(keys)).append("\r\n");
             }
-            clientOut.println("");
+            sb.append("\r\n");
 
             // Print inline data
             if(hasInline){
-                clientOut.println(inline);
+                sb.append(inline + "\r\n");
             }
 
             // Print file content
@@ -204,30 +244,82 @@ public class httpc {
                     line += sc.nextLine() + "\n";
                     fileContent = line.replace("'", "");
                 }
-                clientOut.println(fileContent);
+                sb.append(fileContent + "\r\n");
                 sc.close();
             }
 
+            clientOut.write(sb.toString());
             clientOut.flush();
             
+            sb = new StringBuilder();
+            boolean print = false;
+            // Print contents
+            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
+                if (line.isEmpty() || verbose) print = true;
+                if (print) sb.append(line + "\r\n");
+            }
+            
+            //Check if needs redirection
+            if(sb.toString().contains("HTTP/1.0") || sb.toString().contains("HTTP/1.1") || sb.toString().contains("HTTP/2.0")){
+                if(Redirection(sb.toString()))
+                {
+                    // Open socket
+                	clientSocket.close();
+                    clientSocket = new Socket();
+                    Address = new InetSocketAddress(host, port);
+                    clientSocket.connect(Address);
+                    
+                    clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                    clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    sb = new StringBuilder();
+                    sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+                    sb.append("Host: " + host + "\r\n");
+                    sb.append("Connection: close\r\n");
+                    sb.append("User-Agent: COMP445\r\n");
+                    for (String keys:hPairs.keySet()) {
+                        sb.append(keys).append(": ").append(hPairs.get(keys)).append("\r\n");
+                    }
+                    sb.append("\r\n");
+
+                    // Print inline data
+                    if(hasInline){
+                        sb.append(inline + "\r\n");
+                    }
+
+                    // Print file content
+                    if(hasFile){
+                        Scanner sc = new Scanner(new FileInputStream(fileName));
+                        String fileContent = "";
+                        String line = "";
+                        while(sc.hasNextLine()){
+                            line += sc.nextLine() + "\n";
+                            fileContent = line.replace("'", "");
+                        }
+                        sb.append(fileContent + "\r\n");
+                        sc.close();
+                    }
+
+                    clientOut.write(sb.toString());
+                    clientOut.flush();
+                    
+                    sb = new StringBuilder();
+                    print = false;
+                    // Print contents
+                    for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
+                        if (line.isEmpty() || verbose) print = true;
+                        if (print) sb.append(line + "\r\n");
+                    }
+                }
+            }
+            
             if (!toFile) {
-	            boolean print = false;
 	            // Print contents
-	            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
-	                if (line.isEmpty() || verbose) print = true;
-	                if (print) System.out.println(line);
-	            }
+            	System.out.println(sb);
             }
             else {
             	PrintWriter printToFile = new PrintWriter(outputFile,"UTF-8");
-            	
-	            boolean print = false;
 	            // Print contents
-	            for(String line = clientIn.readLine(); line != null; line = clientIn.readLine()){
-	                if (line.isEmpty() || verbose) print = true;
-	                if (print) printToFile.println(line);
-	            }
-	            
+            	printToFile.println(sb);
 	            printToFile.close();
             }
 
@@ -239,6 +331,14 @@ public class httpc {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private static boolean Redirection(String data) {
+    	String[] dataLines = data.split("\r\n");
+        if(dataLines[0].contains("300") || dataLines[0].contains("301") || dataLines[0].contains("302") || dataLines[0].contains("304")){
+            return true;
+        }
+        return false;
     }
 
     public static void main (String [] args){
