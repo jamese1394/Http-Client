@@ -82,7 +82,7 @@ public class server extends Thread{
             // Request information
             header = request;
             if (header.contains("POST")) {
-                body = request.substring(1);
+                body = request.split("\r\n\r\n")[1];
             }
         }
         // All input received
@@ -116,9 +116,6 @@ public class server extends Thread{
         	// content type / content-disposition
         String[] firstLine = header.split("\r\n")[0].split(" ");
         String pathURL = firstLine[1];
-        if(!pathURL.contains("get") && !pathURL.contains("post")) {
-            sb.append(contentType(header));
-        }
         
         sb.append("\r\n");
         
@@ -128,7 +125,7 @@ public class server extends Thread{
         }
         
         if(pathURL.contains("get")||pathURL.contains("post")){
-            sb.append(output(header,body));
+            sb.append(output(header, body));
         }
         
         return sb.toString();
@@ -138,9 +135,9 @@ public class server extends Thread{
         String[] firstLine = header.split("\r\n")[0].split(" ");
         String pathURL = firstLine[1];
 
-        if(pathURL.contains("get")||pathURL.contains("post")){//normal request as A1
+        if(pathURL.contains("get") || pathURL.contains("post"))
             return "HTTP/1.0 200 OK";
-        }
+        
         URL url = new URL(pathURL);
         String fileName = url.getFile();
         File file = new File(this.path+"\\"+fileName);
@@ -151,44 +148,15 @@ public class server extends Thread{
         }
     }
     
-    private String contentType(String header){
-        StringBuilder sb = new StringBuilder();
-        String[] firstLine = header.split("\r\n")[0].split(" ");
-        String pathURL = firstLine[1];
-        String type = pathURL.substring(pathURL.indexOf(".")+ 1);
-        switch (type){
-            case "html":
-                sb.append("Content-Type: text/html\r\n");
-                sb.append("Content-Disposition: inline\r\n");
-                break;
-            case "json":{
-                sb.append("Content-Type: application/json\r\n");
-                sb.append("Content-Disposition: inline\r\n");
-                break;
-            }
-            case "txt":{
-                sb.append("Content-Type: text/plain\r\n");
-                sb.append("Content-Disposition: inline\r\n");
-                break;
-            }
-            default:{
-                sb.append("Content-Type: text/plain\r\n");
-                sb.append("Content-Disposition: attachment\r\n");
-            }
-        }
-        return sb.toString();
-    }
-    
     private synchronized String locateFiles(String header, String body) throws IOException {
         StringBuilder sb = new StringBuilder();
         String[] firstLine = header.split("\r\n")[0].split(" ");
         String pathURL = firstLine[1];
-        if(pathURL.contains("get")||pathURL.contains("post")){
+        if(pathURL.contains("get") || pathURL.contains("post"))
             return "";
-        }
         URL url = new URL(pathURL);
         String fileName = url.getFile();
-        File file = new File(path+"\\"+fileName);
+        File file = new File(path + "\\" + fileName);
         if(header.contains("GET")){
             if(fileName.equals("")){
                 File[]fileList = file.listFiles((dir, name) -> name.charAt(0) != '.');
@@ -197,10 +165,10 @@ public class server extends Thread{
                     sb.append(f.getName()+"\r\n");
                 }
             }else {
-                sb.append(readFile(this.path +"\\"+ fileName));
+                sb.append(readFile(this.path + "\\" + fileName));
             }
         }else if(header.contains("POST")){
-            writeFile(body, this.path+"\\"+fileName);
+            writeFile(body, this.path + "\\" + fileName);
         }
         return sb.toString();
     }
@@ -218,13 +186,16 @@ public class server extends Thread{
         return sb.toString();
     }
     
-    private void writeFile(String body, String filePath){
-        File file = new File(filePath);
+    private void writeFile(String body, String fPath){
+        File file = new File(fPath);
         BufferedWriter writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter(file));
+        	FileWriter fw = new FileWriter(file);
+            writer = new BufferedWriter(fw);
             writer.write(body);
             writer.close();
+            fw.close();
+            
         }catch (IOException e){
             e.printStackTrace();
         }

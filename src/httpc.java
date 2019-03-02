@@ -221,7 +221,7 @@ public class httpc {
             clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             StringBuilder sb = new StringBuilder();
-            sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+            sb.append("POST" + " "+ url + " HTTP/1.1\r\n");
             sb.append("Host: " + host + "\r\n");
             sb.append("Connection: close\r\n");
             sb.append("User-Agent: COMP445\r\n");
@@ -272,7 +272,7 @@ public class httpc {
                     clientOut = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
                     clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     sb = new StringBuilder();
-                    sb.append("GET" + " "+ url + " HTTP/1.1\r\n");
+                    sb.append("POST" + " "+ url + " HTTP/1.1\r\n");
                     sb.append("Host: " + host + "\r\n");
                     sb.append("Connection: close\r\n");
                     sb.append("User-Agent: COMP445\r\n");

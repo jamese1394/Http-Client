@@ -1,1 +1,14 @@
-'{"AssignmentRocks": 1}'
+HTTPFS: (can change directory)
+httpfs -d C:\Users\live-\Downloads\Http-Client\src\Server
+httpfs -v -d C:\Users\live-\Downloads\Http-Client\src\Server
+httpfs -v -p 8080 -d C:\Users\live-\Downloads\Http-Client\src\Server
+
+GET:
+httpc get -v 'http://localhost'
+httpc get -v 'http://localhost/inputBody.txt'
+httpc get -v 'http://localhost/input.txt' (NO FILE OF THIS NAME)
+
+
+POST:
+httpc post -v -h Content-Type:application/json -d '{"Assignment": 210}' 'http://localhost/inputBody.txt'
+httpc post -v -h Content-Type:application/json -d '{"Assignment": 210}' 'http://localhost/test.txt'
