@@ -120,13 +120,11 @@ public class server extends Thread{
         sb.append("\r\n");
         
         // Content
-        if(status(header).contains("200") && status(header).contains("OK")) {
+        if(status(header).contains("200") && status(header).contains("OK"))
             sb.append(locateFiles(header, body)+"\r\n");
-        }
         
-        if(pathURL.contains("get")||pathURL.contains("post")){
+        if(pathURL.contains("get") || pathURL.contains("post"))
             sb.append(output(header, body));
-        }
         
         return sb.toString();
     }
@@ -141,11 +139,10 @@ public class server extends Thread{
         URL url = new URL(pathURL);
         String fileName = url.getFile();
         File file = new File(this.path+"\\"+fileName);
-        if((file.exists()||fileName.equals("") && header.contains("GET")) || header.contains("POST")){
+        if((file.exists()||fileName.equals("") && header.contains("GET")) || header.contains("POST"))
             return "HTTP/1.0 200 OK";
-        }else {
+        else
             return "HTTP/1.0 ERROR 404";
-        }
     }
     
     private synchronized String locateFiles(String header, String body) throws IOException {
@@ -206,22 +203,19 @@ public class server extends Thread{
         String[] firstLine = header.split("\r\n")[0].split(" ");
         String pathURL = firstLine[1];
         URL url = new URL(pathURL);
-        if(pathURL.contains("?")) {
+        if(pathURL.contains("?"))
             queryParameters(url);
-        }
+        
         sb.append("{\r\n");
         sb.append("  \"args\": {\r\n");
-        for (String key:query.keySet()) {
+        for (String key:query.keySet())
             sb.append("      ").append("\""+key+"\"").append("\""+query.get(key)+"\"").append(",\r\n");
-        }
         sb.append("  },\r\n");
-        if(header.contains("POST")){
+        if(header.contains("POST"))
             sb.append("  \"data\": ").append("\""+body+"\"\r\n");
-        }
         sb.append("  \"headers\": {\r\n");
-        for (int i = 2; i < header.split("\r\n").length; i++) {
+        for (int i = 2; i < header.split("\r\n").length; i++)
             sb.append("      ").append(header.split("\r\n")[i]+"\r\n");
-        }
         sb.append("  },\r\n");
         sb.append("  \"url\": ").append("\""+url+"\"\r\n");
         sb.append("}\r\n");
