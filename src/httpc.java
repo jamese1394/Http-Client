@@ -386,6 +386,38 @@ public class httpc {
             System.exit(0);
         }
         
+        // multiple commands
+        if (args[0].contentEquals("mult")) {
+    		Scanner scanner = new Scanner(System.in);
+    		String temp = scanner.nextLine();
+    		String[] command0 = temp.split(" ");
+    		command0[command0.length - 1] = command0[command0.length - 1].replace("'", "");
+    		temp = scanner.nextLine();
+    		String[] command1 = temp.split(" ");
+    		command1[command1.length - 1] = command1[command1.length - 1].replace("'", "");
+    		scanner.close();
+    		
+    		if (command0[0].contentEquals("get") || command0[0].contentEquals("GET")) {
+    			Get(Arrays.copyOfRange(command0, 1, command0.length));
+    		}
+            else if (command0[0].contentEquals("post") || command0[0].contentEquals("POST")) {
+                Post(Arrays.copyOfRange(command0, 1, command0.length));
+            }
+            else {
+                System.out.println("Invalid command, refer to help");
+            }
+    			
+			if (command1[0].contentEquals("get") || command1[0].contentEquals("GET")) {
+				Get(Arrays.copyOfRange(command1, 1, command1.length));
+			}
+            else if (command1[0].contentEquals("post") || command1[0].contentEquals("POST")) {
+                Post(Arrays.copyOfRange(command1, 1, command1.length));
+            }
+            else {
+                System.out.println("Invalid command, refer to help");
+            }
+    	}
+        
         // commands
         if (args.length >= 2) {
             // get
