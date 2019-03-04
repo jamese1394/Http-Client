@@ -139,7 +139,7 @@ public class server extends Thread{
         URL url = new URL(pathURL);
         String fileName = url.getFile();
         File file = new File(this.path+"\\"+fileName);
-        if((file.exists()||fileName.equals("") && header.contains("GET")) || header.contains("POST"))
+        if((file.exists() || fileName.equals("") && header.contains("GET")) || header.contains("POST"))
             return "HTTP/1.0 200 OK";
         else
             return "HTTP/1.0 ERROR 404";
