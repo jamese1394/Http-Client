@@ -5,10 +5,11 @@ httpfs -v -p 8080 -d C:\Users\live-\Downloads\Http-Client\src\Server
 
 GET:
 httpc get -v 'http://localhost'
-httpc get -v 'http://localhost/inputBody.txt'
-httpc get -v 'http://localhost/input.txt' (NO FILE OF THIS NAME)
+httpc get -v 'http://localhost/test.txt'
+httpc get -v 'http://localhost/test1.txt' (NO FILE OF THIS NAME)
+httpc mult (followed by two commands) NOT WORKING ATM
 
 
 POST:
-httpc post -v -h Content-Type:application/json -d '{"Assignment": 210}' 'http://localhost/inputBody.txt'
-httpc post -v -h Content-Type:application/json -d '{"Assignment": 210}' 'http://localhost/test.txt'
+httpc post -v -h Content-Type:application/json -d '{"Assignment": 2}' 'http://localhost/inputTest.json'
+httpc post -v -h Content-Type:application/json -d '{"Assignment": 2}' 'http://localhost/test2.txt'
